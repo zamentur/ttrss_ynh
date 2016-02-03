@@ -1,12 +1,13 @@
 #!/bin/bash
+APP=${!#}
 
-domain=$(sudo yunohost app setting ttrss domain)
-path=$(sudo yunohost app setting ttrss path)
+domain=$(sudo yunohost app setting $APP domain)
+path=$(sudo yunohost app setting $APP path)
 
-db_user=ttrss
-db_pwd=$(sudo yunohost app setting ttrss mysqlpwd)
+db_user=$APP
+db_pwd=$(sudo yunohost app setting $APP mysqlpwd)
 
-final_path=/var/www/ttrss
+final_path=/var/www/$APP
 sudo mkdir -p $final_path
 
 sudo cp -a ../source/* $final_path
@@ -26,11 +27,11 @@ sudo chown -R www-data: $final_path
 # Modify Nginx configuration file and copy it to Nginx conf directory
 sudo sed -i "s@PATHTOCHANGE@$path@g" ../conf/nginx.conf
 sudo sed -i "s@ALIASTOCHANGE@$final_path/@g" ../conf/nginx.conf
-sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/ttrss.conf
+sudo cp ../conf/nginx.conf /etc/nginx/conf.d/$domain.d/$APP.conf
 
 sudo service nginx reload
 sudo yunohost app ssowatconf
-sudo yunohost app setting ttrss skipped_uris -v "/public.php,/api"
+sudo yunohost app setting $APP skipped_uris -v "/public.php,/api"
 
 # Update database schema
 sudo su - www-data -c "$final_path/update.php --update-schema"
